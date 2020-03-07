@@ -1,3 +1,8 @@
+/*
+	World Wide Importers DB: https://docs.microsoft.com/en-us/sql/samples/wide-world-importers-oltp-install-configure?view=sql-server-ver15
+	And it is restored as [WideWorldImporters-Full]
+*/
+
 SELECT SUSER_NAME(), USER_NAME()
 
 EXECUTE AS USER = 'BasicExample'
@@ -38,7 +43,7 @@ GO
 SELECT c.CityID,
        c.CityName,
        c.StateProvinceID,
-       --c.Location,
+       c.Location,
        c.LatestRecordedPopulation,
        c.LastEditedBy,
        c.ValidFrom,
@@ -48,6 +53,13 @@ GO
 REVERT
 
 REVOKE SELECT (Location) ON Application.Cities TO BasicExample
+
+
+
+
+
+
+
 
 GRANT SELECT (Location)  ON Application.Cities TO BasicExample
 

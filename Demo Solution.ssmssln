@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 18.00
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo 4", "Demo 4", "{53A40C3A-CE6F-433A-8BFE-F19A06941310}"
+	ProjectSection(SolutionItems) = preProject
+		Example - IS_ROLEMEMBER.sql = Example - IS_ROLEMEMBER.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup Teardown", "Setup Teardown", "{482F4236-533D-49D4-8959-78CEA6ADF1C1}"
+	ProjectSection(SolutionItems) = preProject
+		Current Permissions.sql = Current Permissions.sql
+		Setup.sql = Setup.sql
+		Teardown.sql = Teardown.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo 1", "Demo 1", "{AA7D0EC3-4413-4431-9D6C-2DB05E0EC693}"
+	ProjectSection(SolutionItems) = preProject
+		Example - Basic.sql = Example - Basic.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo 2", "Demo 2", "{CE4F187C-E5C6-4CEA-B353-36D7D495CF3D}"
+	ProjectSection(SolutionItems) = preProject
+		Example - Role.sql = Example - Role.sql
+		Roles and their membership.sql = Roles and their membership.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo 3", "Demo 3", "{24C7960C-1904-470A-9768-0DA91A981B89}"
+	ProjectSection(SolutionItems) = preProject
+		Example - Converting a person to a role.sql = Example - Converting a person to a role.sql
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F9A5284-DE5B-4BB3-817B-1671BE05E0B0}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {48ACE8C2-D6C9-4194-A6FE-8F3E20CF1E45}
+	EndGlobalSection
+EndGlobal

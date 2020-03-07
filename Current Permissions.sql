@@ -129,3 +129,4 @@ CROSS APPLY (
 ) CalcGrantDenyRevoke
 WHERE CalcValues.PrincipalName <> 'public'
 AND CalcValues.PermissionName <> 'CONNECT'
+ORDER BY CalcValues.PrincipalName

@@ -131,7 +131,7 @@ GO
 
 
 /*
-	Filtering the data
+	filtering column data
 */
 CREATE OR ALTER VIEW [Website].[Customers_WithRoles]
 AS
