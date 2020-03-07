@@ -15,8 +15,7 @@ CROSS APPLY (
 	SELECT dp.name COLLATE DATABASE_DEFAULT AS PrincipalName
 		,dp.type_desc COLLATE DATABASE_DEFAULT AS PrincipalType
 		,CASE 
-			WHEN dper.class_desc = N'OBJECT_OR_COLUMN' AND dper.minor_id = 0 THEN 'OBJECT'
-			WHEN dper.class_desc = N'OBJECT_OR_COLUMN' AND dper.minor_id != 0 THEN 'COLUMN'
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN' THEN 'OBJECT'
 			WHEN dper.class_desc = N'DATABASE_PRINCIPAL'
 				THEN (
 					SELECT CASE WHEN dp2.type = 'A' THEN 'APPLICATION ROLE' ELSE 'DATABASE_PRINCIPAL' END
@@ -107,23 +106,25 @@ CROSS APPLY (
 	SELECT 
 		CalcValues.PermissionState + ' '
 		+ CalcValues.PermissionName
+		+ISNULL('('+QUOTENAME(CalcValues.ColumnName)+')','')
 		+ISNULL(' ON ' 
 			+NULLIF(CalcValues.ClassDescription,'DATABASE')
 			+ISNULL('::'
 				+ISNULL(QUOTENAME(CalcValues.SchemaName),'')
 				+CASE WHEN CalcValues.SchemaName IS NOT NULL AND CalcValues.EntityName IS NOT NULL THEN '.' ELSE '' END
 				+ISNULL(QUOTENAME(CalcValues.EntityName),'')
-				+ISNULL('('+CalcValues.ColumnName+')',''),''),'')
+				,''),'')
 			+' TO '+QUOTENAME(CalcValues.PrincipalName) AS GrantDenyStatement
 		,'REVOKE '
-		+ CalcValues.PermissionName
+				+ CalcValues.PermissionName
+		+ISNULL('('+QUOTENAME(CalcValues.ColumnName)+')','')
 		+ISNULL(' ON ' 
 			+NULLIF(CalcValues.ClassDescription,'DATABASE')
 			+ISNULL('::'
 				+ISNULL(QUOTENAME(CalcValues.SchemaName),'')
 				+CASE WHEN CalcValues.SchemaName IS NOT NULL AND CalcValues.EntityName IS NOT NULL THEN '.' ELSE '' END
 				+ISNULL(QUOTENAME(CalcValues.EntityName),'')
-				+ISNULL('('+CalcValues.ColumnName+')',''),''),'')
+				,''),'')
 			+' TO '+QUOTENAME(CalcValues.PrincipalName) AS RevokeStatement
 ) CalcGrantDenyRevoke
 WHERE CalcValues.PrincipalName <> 'public'
