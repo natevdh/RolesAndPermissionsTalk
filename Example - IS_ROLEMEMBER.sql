@@ -56,6 +56,83 @@ SELECT * FROM [WideWorldImporters-Full].[Website].[Customers_WithRoles]
 GO
 REVERT
 GO
+
+/*
+	STOP SCROLLING
+	STOP SCROLLING
+	STOP SCROLLING
+	STOP SCROLLING
+	STOP SCROLLING
+	STOP SCROLLING
+*/
+
+
+
+
+
+
+/*
+	Security Policies
+	Database -> Security -> Security Policies
+*/
+GO
+ALTER   FUNCTION [Application].[DetermineCustomerAccess](@CityID INT)
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN (SELECT 1 AS AccessResult
+        WHERE IS_ROLEMEMBER(N'db_owner') <> 0
+		OR IS_ROLEMEMBER('Sales Manager') = 1
+        OR IS_ROLEMEMBER((SELECT sp.SalesTerritory
+                          FROM [Application].Cities AS c
+                          INNER JOIN [Application].StateProvinces AS sp
+                          ON c.StateProvinceID = sp.StateProvinceID
+                          WHERE c.CityID = @CityID) + N' Sales') <> 0
+	   );
+GO
+
+
+
+
+
+
+
+DROP SECURITY POLICY [Application].[FilterCustomersBySalesTerritoryRole]
+GO
+ALTER   FUNCTION [Application].[DetermineCustomerAccess](@CityID INT)
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN (SELECT 1 AS AccessResult
+        WHERE IS_ROLEMEMBER(N'db_owner') <> 0
+		OR IS_ROLEMEMBER('Sales Manager') = 1
+        OR IS_ROLEMEMBER((SELECT sp.SalesTerritory
+                          FROM [Application].Cities AS c
+                          INNER JOIN [Application].StateProvinces AS sp
+                          ON c.StateProvinceID = sp.StateProvinceID
+                          WHERE c.CityID = @CityID) + N' Sales') <> 0
+	   );
+GO
+CREATE SECURITY POLICY [Application].[FilterCustomersBySalesTerritoryRole] 
+ADD FILTER PREDICATE [Application].[DetermineCustomerAccess]([DeliveryCityID]) ON [Sales].[Customers],
+ADD BLOCK PREDICATE [Application].[DetermineCustomerAccess]([DeliveryCityID]) ON [Sales].[Customers] AFTER UPDATE
+WITH (STATE = ON, SCHEMABINDING = ON)
+GO
+EXECUTE AS USER='SalesManagerExample'
+GO
+SELECT * FROM [WideWorldImporters-Full].[Website].[Customers_WithRoles]
+GO
+REVERT
+GO
+
+
+
+
+
+
+/*
+	Filtering the data
+*/
 CREATE OR ALTER VIEW [Website].[Customers_WithRoles]
 AS
 SELECT s.CustomerID,
@@ -80,9 +157,28 @@ where (
 	)
 )
 GO
+
+GO --Execute as self
+SELECT * FROM [WideWorldImporters-Full].[Website].[Customers_WithRoles]
+GO
+
+
+
 EXECUTE AS USER='MultiSalesExample'
 GO
 SELECT * FROM [WideWorldImporters-Full].[Website].[Customers_WithRoles]
 GO
 REVERT
 GO
+
+
+
+
+
+
+
+/*
+Dynamic Data Masking. 
+- Not covered in the talk because if a person has direct access to a database they can bypass parts of it. 
+- More info see this link https://docs.microsoft.com/en-us/sql/relational-databases/security/dynamic-data-masking?view=sql-server-ver15
+*/

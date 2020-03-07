@@ -1,83 +1,130 @@
 SELECT 
-	per.PrincipalName
-    ,per.PrincipalType
-    ,per.ClassDescription
-    ,per.RelatesTo
-    ,per.PermissionName
-    ,per.PermissionState  
-	,per.PermissionState + ' '+ per.PermissionName + ' ON '+ per.ClassDescription+'::'+REPLACE(QUOTENAME(per.RelatesTo),'.','].[')+' TO '+QUOTENAME(per.PrincipalName) AS RecreateStatement
-	,'REVOKE '+ per.PermissionName + ' ON '+ per.ClassDescription+'::'+REPLACE(QUOTENAME(per.RelatesTo),'.','].[')+' TO '+QUOTENAME(per.PrincipalName) AS RevokeStatement
-FROM (
-	SELECT 
-		dp.name AS PrincipalName
-		,dp.type_desc AS PrincipalType
+	CalcValues.PrincipalName,
+    CalcValues.PrincipalType,
+    CalcValues.ClassDescription,
+    CalcValues.SchemaName,
+    CalcValues.EntityName,
+    CalcValues.ColumnName,
+    CalcValues.PermissionName,
+    CalcValues.PermissionState
+	--,CalcGrantDenyRevoke.GrantDenyStatement
+	--,CalcGrantDenyRevoke.RevokeStatement
+FROM sys.database_permissions dper
+JOIN sys.database_principals dp ON dper.grantee_principal_id = dp.principal_id
+CROSS APPLY (
+	SELECT dp.name COLLATE DATABASE_DEFAULT AS PrincipalName
+		,dp.type_desc COLLATE DATABASE_DEFAULT AS PrincipalType
 		,CASE 
-			WHEN dper.class_desc = 'DATABASE' THEN 'Database'
-			WHEN dper.class_desc = 'TYPE' THEN 'Type'
-			WHEN dper.class_desc = 'OBJECT_OR_COLUMN' AND dper.minor_id = 0 THEN 'Object'
-			WHEN dper.class_desc = 'OBJECT_OR_COLUMN' AND dper.minor_id != 0 THEN 'Column'
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN' AND dper.minor_id = 0 THEN 'OBJECT'
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN' AND dper.minor_id != 0 THEN 'COLUMN'
+			WHEN dper.class_desc = N'DATABASE_PRINCIPAL'
+				THEN (
+					SELECT CASE WHEN dp2.type = 'A' THEN 'APPLICATION ROLE' ELSE 'DATABASE_PRINCIPAL' END
+					FROM sys.database_principals dp2
+					WHERE dp2.principal_id = dper.major_id
+				)
 			ELSE dper.class_desc
-			END AS ClassDescription
-		,CASE dper.class_desc
-			WHEN 'DATABASE' 
-				THEN 'Database'
-			WHEN 'SCHEMA' 
+			END COLLATE DATABASE_DEFAULT AS ClassDescription
+			/*
+			--ToDo Finish up gettting all of the items on this list into here
+			DATABASE
+			OBJECT_OR_COLUMN
+			SCHEMA
+			DATABASE_PRINCIPAL
+			ASSEMBLY
+			TYPE
+			XML_SCHEMA_COLLECTION
+			MESSAGE_TYPE
+			SERVICE_CONTRACT
+			SERVICE
+			REMOTE_SERVICE_BINDING
+			ROUTE
+			FULLTEXT_CATALOG
+			SYMMETRIC_KEYS
+			CERTIFICATE
+			ASYMMETRIC_KEY
+			*/
+		, CASE  
+			WHEN dper.class_desc = N'SCHEMA'
 				THEN (
 					SELECT s1.name 
 					FROM sys.schemas s1
 					WHERE s1.schema_id = dper.major_id 
 						AND dper.minor_id = 0)
-			WHEN 'OBJECT_OR_COLUMN' 
-				THEN 
-					CASE 
-						WHEN dper.minor_id = 0 AND dper.major_id > 0
-							THEN
-								(
-								SELECT s2.name+N'.'+o2.name 
-								FROM sys.objects o2
-								JOIN sys.schemas s2 ON s2.schema_id = o2.schema_id
-								WHERE dper.major_id = o2.object_id
-								)
-						WHEN dper.minor_id = 0 AND dper.major_id < 0
-							THEN
-								(
-								SELECT s3.name+N'.'+o3.name 
-								FROM sys.system_objects o3
-								JOIN sys.schemas s3 ON s3.schema_id = o3.schema_id
-								WHERE dper.major_id = o3.object_id
-								)
-						WHEN dper.minor_id > 0  AND dper.major_id > 0
-							THEN
-								(
-								SELECT s4.name+N'.'+o4.name+N'.'+c4.name 
-								FROM sys.objects o4
-								JOIN sys.schemas s4 ON s4.schema_id = o4.schema_id
-								JOIN sys.columns c4 ON c4.object_id = o4.object_id
-								WHERE dper.major_id = o4.object_id
-								AND dper.minor_id = c4.column_id
-								)
-					END
-			WHEN 'TYPE'
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN'
 				THEN (
-					SELECT s4.name+'.'+ty.name
+					SELECT s3.name
+					FROM sys.all_objects o3
+					JOIN sys.schemas s3 ON s3.schema_id = o3.schema_id
+					WHERE dper.major_id = o3.object_id
+				)
+			WHEN dper.class_desc = N'TYPE'
+				THEN (
+					SELECT s4.name
 					FROM sys.types ty
 					JOIN sys.schemas s4 ON s4.schema_id = ty.schema_id
 					WHERE dper.major_id = ty.user_type_id
 				)
-			END  AS RelatesTo
-		,dper.permission_name COLLATE Latin1_General_100_CI_AS AS PermissionName
-		,dper.state_desc AS PermissionState
-		--, dper.*
-	FROM sys.database_permissions dper
-	JOIN sys.database_principals dp ON dper.grantee_principal_id = dp.principal_id
-) per
---While it is important to know what rights public has you can remove them from some of the work
-WHERE per.PrincipalName <> 'public'
-AND per.PermissionName <> 'CONNECT'
-ORDER BY PrincipalType
-	,PrincipalName
-
-
-
-
-
+			END AS SchemaName
+		, CASE  
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN'
+				THEN (
+					SELECT o3.name
+					FROM sys.all_objects o3
+					JOIN sys.schemas s3 ON s3.schema_id = o3.schema_id
+					WHERE dper.major_id = o3.object_id
+				)
+			WHEN dper.class_desc = N'TYPE'
+				THEN (
+					SELECT ty.name
+					FROM sys.types ty
+					JOIN sys.schemas s4 ON s4.schema_id = ty.schema_id
+					WHERE dper.major_id = ty.user_type_id
+				)
+			WHEN dper.class_desc = N'DATABASE_PRINCIPAL'
+				THEN (
+					SELECT dp2.name
+					FROM sys.database_principals dp2
+					WHERE dp2.principal_id = dper.major_id
+				)
+			END COLLATE DATABASE_DEFAULT AS EntityName
+		, CASE  
+			WHEN dper.class_desc = N'OBJECT_OR_COLUMN'
+				AND dper.minor_id > 0
+				THEN (
+					SELECT ac3.name
+					FROM sys.all_objects o3
+					JOIN sys.schemas s3 ON s3.schema_id = o3.schema_id
+					JOIN sys.all_columns ac3 ON ac3.object_id = o3.object_id
+					WHERE dper.major_id = o3.object_id
+					AND ac3.column_id = dper.minor_id
+				)
+			END AS ColumnName
+		,dper.permission_name COLLATE DATABASE_DEFAULT AS PermissionName
+		,dper.state_desc COLLATE DATABASE_DEFAULT AS PermissionState
+) CalcValues
+CROSS APPLY (
+	SELECT 
+		CalcValues.PermissionState + ' '
+		+ CalcValues.PermissionName
+		+ISNULL(' ON ' 
+			+NULLIF(CalcValues.ClassDescription,'DATABASE')
+			+ISNULL('::'
+				+ISNULL(QUOTENAME(CalcValues.SchemaName),'')
+				+CASE WHEN CalcValues.SchemaName IS NOT NULL AND CalcValues.EntityName IS NOT NULL THEN '.' ELSE '' END
+				+ISNULL(QUOTENAME(CalcValues.EntityName),'')
+				+ISNULL('('+CalcValues.ColumnName+')',''),''),'')
+			+' TO '+QUOTENAME(CalcValues.PrincipalName) AS GrantDenyStatement
+		,'REVOKE '
+		+ CalcValues.PermissionName
+		+ISNULL(' ON ' 
+			+NULLIF(CalcValues.ClassDescription,'DATABASE')
+			+ISNULL('::'
+				+ISNULL(QUOTENAME(CalcValues.SchemaName),'')
+				+CASE WHEN CalcValues.SchemaName IS NOT NULL AND CalcValues.EntityName IS NOT NULL THEN '.' ELSE '' END
+				+ISNULL(QUOTENAME(CalcValues.EntityName),'')
+				+ISNULL('('+CalcValues.ColumnName+')',''),''),'')
+			+' TO '+QUOTENAME(CalcValues.PrincipalName) AS RevokeStatement
+) CalcGrantDenyRevoke
+WHERE CalcValues.PrincipalName <> 'public'
+AND CalcValues.PermissionName <> 'CONNECT'
