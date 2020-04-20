@@ -1,9 +1,5 @@
-# RolesAndPermissionsTalk
+# Protecting the Kingdom: An intro to permissions in SQL Server
 
-
-## Protecting the Kingdom: An intro to permissions in SQL Server
-
-## Abstract 
 Have you ever wanted to give someone access to the database without giving away the keys to the kingdom?
 Do developers "accidently" drop databases on you?
 Can you answer the question who can see the data in this table?
