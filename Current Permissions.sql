@@ -1,12 +1,12 @@
 SELECT 
-	CalcValues.PrincipalName,
-    CalcValues.PrincipalType,
+	CalcValues.PermissionState,
+    CalcValues.PermissionName,
     CalcValues.ClassDescription,
     CalcValues.SchemaName,
     CalcValues.EntityName,
     CalcValues.ColumnName,
-    CalcValues.PermissionName,
-    CalcValues.PermissionState
+	CalcValues.PrincipalName,
+    CalcValues.PrincipalType
 	--,CalcGrantDenyRevoke.GrantDenyStatement
 	--,CalcGrantDenyRevoke.RevokeStatement
 FROM sys.database_permissions dper
