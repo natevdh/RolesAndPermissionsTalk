@@ -130,3 +130,7 @@ CROSS APPLY (
 WHERE CalcValues.PrincipalName <> 'public'
 AND CalcValues.PermissionName <> 'CONNECT'
 ORDER BY CalcValues.PrincipalName
+	,CalcValues.SchemaName
+	,CalcValues.EntityName
+	,CalcValues.ColumnName
+	,CalcValues.PermissionName

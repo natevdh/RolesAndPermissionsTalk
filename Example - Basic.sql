@@ -3,11 +3,11 @@
 	And it is restored as [WideWorldImporters-Full]
 */
 
-SELECT SUSER_NAME(), USER_NAME()
+SELECT USER_NAME()
 
 EXECUTE AS USER = 'BasicExample'
 GO
-SELECT SUSER_NAME(), USER_NAME()
+SELECT USER_NAME()
 GO
 REVERT
 
@@ -23,8 +23,9 @@ REVERT
 -------
 
 
+GRANT SELECT ON OBJECT::Application.Countries TO BasicExample
 GRANT SELECT ON Application.Cities TO BasicExample
-GRANT SELECT ON Application.Countries TO BasicExample
+GRANT UPDATE TO BasicExample
 
 EXECUTE AS USER = 'BasicExample'
 GO
@@ -32,6 +33,9 @@ SELECT * FROM Application.Cities c
 GO
 REVERT
 GO
+
+-- Reviewing what permissions are out there
+
 
 REVOKE SELECT ON Application.Countries TO BasicExample
 ----------------
@@ -64,9 +68,9 @@ REVOKE SELECT (Location) ON Application.Cities TO BasicExample
 GRANT SELECT (Location)  ON Application.Cities TO BasicExample
 
 REVOKE SELECT ON Application.Cities TO BasicExample
+REVOKE UPDATE TO BasicExample
 
 
-
-GRANT SELECT ON schema::SALES TO BasicExample
-GRANT SELECT ON Object::Sales.Orders TO BasicExample
+GRANT SELECT ON SCHEMA::Application TO BasicExample
+GRANT SELECT ON OBJECT::Sales.Orders TO BasicExample
 GRANT EXECUTE ON TYPE::dbo.UniqueINTs TO BasicExample
