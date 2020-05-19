@@ -163,15 +163,3 @@ SELECT * FROM [WideWorldImporters-Full].[Website].[Customers_WithRoles]
 GO
 REVERT
 GO
-
-
-
-
-
-
-
-/*
-Dynamic Data Masking. 
-- Not covered in the talk because if a person has direct access to a database they can bypass parts of it. 
-- More info see this link https://docs.microsoft.com/en-us/sql/relational-databases/security/dynamic-data-masking?view=sql-server-ver15
-*/
